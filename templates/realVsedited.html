@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake or Real Image Detector</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e8f0fe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .file-input {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .preview {
+            margin-top: 20px;
+        }
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .result {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff5c5c; /* Initial color for undecided result */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fake or Real Image Detector</h1>
+        <p>Upload an image to check if it is fake or real.</p>
+        <input type="file" class="file-input" accept="image/*" id="imageInput">
+        <div class="preview" id="imagePreview"></div>
+        <button onclick="detectImage()">Detect</button>
+        <div class="result" id="result">Waiting for input...</div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            const preview = document.getElementById('imagePreview');
+
+            reader.onload = function() {
+                const image = document.createElement('img');
+                image.src = reader.result;
+                preview.innerHTML = '';
+                preview.appendChild(image);
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.getElementById('imageInput').addEventListener('change', previewImage);
+
+        function detectImage() {
+            const input = document.getElementById('imageInput');
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('http://localhost:5000/detect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const result = document.getElementById('result');
+                result.textContent = data.result;
+                result.style.color = data.result === 'Fake Image' ? '#ff5c5c' : '#28a745';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
